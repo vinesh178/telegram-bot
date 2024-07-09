@@ -21,8 +21,8 @@ def download_video(url, file_name) -> None:
     block_size = 1024
     progress_bar = tqdm(total=total_size, unit="B", unit_scale=True)
 
-    # download_path = os.path.join(Path.home(), "Downloads", file_name)
-    download_path = os.path.join("/app/downloads", file_name)
+    download_path = os.path.join(Path.home(), "Downloads", file_name)
+    # download_path = os.path.join("/app/downloads", file_name)
 
     with open(download_path, "wb") as file:
         for data in response.iter_content(block_size):
@@ -59,4 +59,4 @@ async def download_twitter_video(url):
 
     download_video(highest_quality_url, file_name)
 
-    return os.path.join("/app/downloads", file_name)
+    return os.path.join(Path.home(), "Downloads", file_name)

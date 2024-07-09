@@ -1,3 +1,5 @@
+version: '3'
+
 # Comments are provided throughout this file to help you get started.
 # If you need more help, visit the Docker compose reference guide at
 # https://docs.docker.com/go/compose-spec-reference/
@@ -11,8 +13,13 @@ services:
   server:
     build:
       context: .
+      dockerfile: Dockerfile
+      network: host
+    volumes:
+     - /home/vinesh/Downloads:/app/downloads
     ports:
-      - 8000:8000
+      - 8033:8033
+    user: myuser
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to

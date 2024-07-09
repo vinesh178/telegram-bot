@@ -1,26 +1,24 @@
 # syntax=docker/dockerfile:1
-
-ARG PYTHON_VERSION=3.10
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
-WORKDIR /app/downloads
 
-ARG UID=10001
-RUN adduser --disabled-password --gecos "" --home "/nonexistent" --shell "/sbin/nologin" --no-create-home --uid "${UID}" appuser
-
-RUN --mount=type=cache,target=/root/.cache/pip --mount=type=bind,source=requirements.txt,target=requirements.txt python -m pip install -r requirements.txt
-RUN chown -R appuser:appuser /app/downloads
-
-USER appuser
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+RUN groupadd -r myuser && useradd -r -g myuser myuser
 
-VOLUME /app/downloads:/Users/vineshkumar/Downloads
+RUN mkdir /app/downloads && chown -R nobody:nogroup /app
 
-CMD python3 telegram-bot.py
+RUN chown -R myuser:myuser /app/downloads
+
+USER myuser
+
+EXPOSE 8033
+
+CMD ["python3", "telegram-bot.py"]

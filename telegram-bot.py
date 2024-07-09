@@ -1,4 +1,8 @@
+import asyncio
+from io import BytesIO
+from pathlib import Path
 from typing import Final
+from telegram.error import TimedOut
 
 from twitter_downloader import download_twitter_video
 
@@ -25,18 +29,66 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please give a video url to download ")
 
-async def handle_response(text: str, update: Update) -> str:
+# async def handle_response(text: str, update: Update) -> str:
 
-    p_text: str = text.lower()
+#     p_text: str = text.lower()
 
     
+#     if is_valid_twitter_video_url(p_text):
+#         await update.message.reply_text(
+#             "Please Wait..Your video is being downloaded..."
+#         )
+#         # video_file = await download_twitter_video(p_text)
+#         # await update.message.reply_video(video_file, supports_streaming=False)
+#         # return "Video sent"
+#         try:
+#             video_file = await download_twitter_video(p_text)
+#             file_path = Path(video_file)
+#             print(f"Video downloaded to: {file_path}")
+#             print(f"File exists: {file_path.exists()}")
+#             print(f"File size: {file_path.stat().st_size} bytes")
+            
+#             with open(file_path, 'rb') as f:
+#                 file_object = BytesIO(f.read())
+#                 file_object.name = file_path.name
+            
+#             await update.message.reply_video(video=file_object, supports_streaming=True)
+#             return "Video sent"
+#         except Exception as e:
+#             print(f"Error sending video: {str(e)}")
+#             return f"Error: {str(e)}"
+#     else: 
+#         return "Please provide a valid url"
+
+async def handle_response(text: str, update: Update) -> str:
+    p_text: str = text.lower()
+    
     if is_valid_twitter_video_url(p_text):
-        await update.message.reply_text(
-            "Please Wait..Your video is being downloaded..."
-        )
-        video_file = await download_twitter_video(p_text)
-        await update.message.reply_video(video_file, supports_streaming=False)
-        return "Video sent"
+        await update.message.reply_text("Please Wait..Your video is being downloaded...")
+        try:
+            video_file = await download_twitter_video(p_text)
+            file_path = Path(video_file)
+            print(f"Video downloaded to: {file_path}")
+            print(f"File exists: {file_path.exists()}")
+            print(f"File size: {file_path.stat().st_size} bytes")
+        
+            chunk_size = 10 * 1024 * 1024  # 10 MB chunks
+            
+            with open(file_path, 'rb') as file:
+                while True:
+                    chunk = file.read(chunk_size)
+                    # if not chunk:
+                    #     break
+                    try:
+                        await update.message.reply_video(video=BytesIO(chunk), supports_streaming=False)
+                    except TimedOut:
+                        await asyncio.sleep(5)  # Wait for 5 seconds before retrying
+                        continue
+            
+            return "Video sent"
+        except Exception as e:
+            print(f"Error sending video: {str(e)}")
+            return f"Error: {str(e)}"
     else: 
         return "Please provide a valid url"
 
@@ -74,7 +126,7 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     try:
         print("Starting bot")
-        app = Application.builder().token(TOKEN).read_timeout(60).write_timeout(60).build()
+        app = Application.builder().token(TOKEN).read_timeout(600).write_timeout(600).build()
 
         app.add_handler(CommandHandler("start", start_command))
         app.add_handler(CommandHandler("help", help_command))
