@@ -13,7 +13,7 @@ from telegram.ext import (
 
 import re
 
-TOKEN: Final = "7110292564:AAEsh6RiqxK7xv0WBL0G-Gr4J7wE69UR82o"
+TOKEN: Final = ""
 BOT_USERNAME: Final = "@tvideov_bot"
 
 
